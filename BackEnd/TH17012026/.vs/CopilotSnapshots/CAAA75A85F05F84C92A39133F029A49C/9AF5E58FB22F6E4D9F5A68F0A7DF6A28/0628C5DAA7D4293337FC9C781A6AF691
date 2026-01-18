@@ -1,0 +1,111 @@
+﻿using TH17012026.Application.DTOs;
+using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+
+namespace TH17012026.Application.Services
+{
+    public class StudentService : IStudentService
+    {
+        private readonly IStudentRepository _studentRepository;
+        private readonly IClassRepository _classRepository;
+
+        public StudentService(IStudentRepository studentRepository, IClassRepository classRepository)
+        {
+            _studentRepository = studentRepository;
+            _classRepository = classRepository;
+        }
+
+        public async Task<IEnumerable<StudentDto>> GetAllStudentsAsync()
+        {
+            var students = await _studentRepository.GetAllAsync();
+            return students.Select(s => new StudentDto
+            {
+                Id = s.Id,
+                FullName = s.FullName,
+                Email = s.Email,
+                DateOfBirth = s.DateOfBirth,
+                ClassId = s.ClassId,
+                ClassName = s.Class?.Name
+            });
+        }
+
+        public async Task<StudentDto?> GetStudentByIdAsync(int id)
+        {
+            var student = await _studentRepository.GetByIdAsync(id);
+            if (student == null) return null;
+
+            return new StudentDto
+            {
+                Id = student.Id,
+                FullName = student.FullName,
+                Email = student.Email,
+                DateOfBirth = student.DateOfBirth,
+                ClassId = student.ClassId,
+                ClassName = student.Class?.Name
+            };
+        }
+
+        public async Task<StudentDto> CreateStudentAsync(CreateStudentDto createDto)
+        {
+            // Validate class exists
+            if (!await _classRepository.ExistsAsync(createDto.ClassId))
+            {
+                throw new ArgumentException($"Class with Id {createDto.ClassId} does not exist.");
+            }
+
+            var student = new Student
+            {
+                FullName = createDto.FullName,
+                Email = createDto.Email,
+                DateOfBirth = createDto.DateOfBirth,
+                ClassId = createDto.ClassId
+            };
+
+            var createdStudent = await _studentRepository.AddAsync(student);
+
+            return new StudentDto
+            {
+                Id = createdStudent.Id,
+                FullName = createdStudent.FullName,
+                Email = createdStudent.Email,
+                DateOfBirth = createdStudent.DateOfBirth,
+                ClassId = createdStudent.ClassId,
+                ClassName = createdStudent.Class?.Name
+            };
+        }
+
+        public async Task<StudentDto?> UpdateStudentAsync(int id, UpdateStudentDto updateDto)
+        {
+            var student = await _studentRepository.GetByIdAsync(id);
+            if (student == null) return null;
+
+            // Validate class exists
+            if (!await _classRepository.ExistsAsync(updateDto.ClassId))
+            {
+                throw new ArgumentException($"Class with Id {updateDto.ClassId} does not exist.");
+            }
+
+            student.FullName = updateDto.FullName;
+            student.Email = updateDto.Email;
+            student.DateOfBirth = updateDto.DateOfBirth;
+            student.ClassId = updateDto.ClassId;
+
+            var updatedStudent = await _studentRepository.UpdateAsync(student);
+
+            return new StudentDto
+            {
+                Id = updatedStudent.Id,
+                FullName = updatedStudent.FullName,
+                Email = updatedStudent.Email,
+                DateOfBirth = updatedStudent.DateOfBirth,
+                ClassId = updatedStudent.ClassId,
+                ClassName = updatedStudent.Class?.Name
+            };
+        }
+
+        public async Task<bool> DeleteStudentAsync(int id)
+        {
+            return await _studentRepository.DeleteAsync(id);
+        }
+    }
+}

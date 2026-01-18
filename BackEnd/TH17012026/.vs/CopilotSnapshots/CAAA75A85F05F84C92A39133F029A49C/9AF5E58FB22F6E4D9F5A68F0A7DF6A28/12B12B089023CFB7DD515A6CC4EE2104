@@ -1,0 +1,58 @@
+﻿using TH17012026.Application.DTOs;
+using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+
+namespace TH17012026.Application.Services
+{
+    public class ClassService : IClassService
+    {
+        private readonly IClassRepository _classRepository;
+
+        public ClassService(IClassRepository classRepository)
+        {
+            _classRepository = classRepository;
+        }
+
+        public async Task<IEnumerable<ClassDto>> GetAllClassesAsync()
+        {
+            var classes = await _classRepository.GetAllAsync();
+            return classes.Select(c => new ClassDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description
+            });
+        }
+
+        public async Task<ClassDto?> GetClassByIdAsync(int id)
+        {
+            var classEntity = await _classRepository.GetByIdAsync(id);
+            if (classEntity == null) return null;
+
+            return new ClassDto
+            {
+                Id = classEntity.Id,
+                Name = classEntity.Name,
+                Description = classEntity.Description
+            };
+        }
+
+        public async Task<ClassDto> CreateClassAsync(CreateClassDto createDto)
+        {
+            var classEntity = new Classes
+            {
+                Name = createDto.Name,
+                Description = createDto.Description
+            };
+
+            var createdClass = await _classRepository.AddAsync(classEntity);
+
+            return new ClassDto
+            {
+                Id = createdClass.Id,
+                Name = createdClass.Name,
+                Description = createdClass.Description
+            };
+        }
+    }
+}

@@ -1,0 +1,254 @@
+﻿# Web API - Quản lý Sinh viên và Lớp học
+
+## Mô tả
+API RESTful được xây dựng theo **Clean Architecture** sử dụng **ASP.NET Core** và **Entity Framework Core In-Memory Database**.
+
+## Kiến trúc Clean Architecture
+
+```
+Client (Postman)
+    ↓
+┌──────────────────────────────────────────────────┐
+│      Presentation Layer (Controllers)           │
+│            ↓ depends on                          │
+│      Application Layer (Services + Interfaces)   │ ← Defines IRepository
+│            ↓ depends on                          │
+│      Domain Layer (Entities)                     │
+└──────────────────────────────────────────────────┘
+                    ↑
+                    │ implements
+┌──────────────────────────────────────────────────┐
+│  Infrastructure Layer (DbContext + Repositories) │ ← Implements IRepository
+└──────────────────────────────────────────────────┘
+```
+
+### ✅ Nguyên tắc Clean Architecture:
+1. **Dependency Inversion**: Infrastructure phụ thuộc vào Application (không phải ngược lại)
+2. **Separation of Concerns**: Mỗi layer có trách nhiệm riêng biệt
+3. **Testability**: Dễ dàng mock Repositories thông qua interfaces
+4. **Independence**: Domain không phụ thuộc vào bất kỳ layer nào khác
+
+### Cấu trúc thư mục:
+```
+TH17012026/
+├── Domain/
+│   └── Entities/
+│       ├── Student.cs          # Entity sinh viên
+│       └── Classes.cs          # Entity lớp học
+├── Infrastructure/
+│   ├── Data/
+│   │   └── AppDbContext.cs     # DbContext
+│   └── Repositories/
+│       ├── StudentRepository.cs
+│       └── ClassRepository.cs
+├── Application/
+│   ├── DTOs/
+│   │   ├── StudentDto.cs       # Data Transfer Objects
+│   │   └── ClassDto.cs
+│   └── Services/
+│       ├── IStudentService.cs  # Interface
+│       ├── StudentService.cs   # Service implementation
+│       ├── IClassService.cs
+│       └── ClassService.cs
+├── Presentation/
+│   └── Controllers/
+│       ├── StudentsController.cs
+│       └── ClassesController.cs
+└── Program.cs                   # Entry point
+```
+
+## Database Schema
+
+### Bảng Classes
+| Tên cột     | Kiểu dữ liệu | Mô tả        |
+|-------------|--------------|--------------|
+| Id          | int (PK)     | Mã lớp       |
+| Name        | varchar      | Tên lớp      |
+| Description | varchar      | Mô tả        |
+
+### Bảng Students
+| Tên cột     | Kiểu dữ liệu | Mô tả            |
+|-------------|--------------|------------------|
+| Id          | int (PK)     | Mã sinh viên     |
+| FullName    | varchar      | Họ tên           |
+| Email       | varchar      | Email            |
+| DateOfBirth | date         | Ngày sinh        |
+| ClassId     | int (FK)     | Liên kết lớp     |
+
+## API Endpoints
+
+### 📘 Quản lý Lớp học (Classes)
+
+#### 1. Lấy danh sách lớp
+```
+GET /api/classes
+```
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "CNTT",
+    "description": "Công nghệ thông tin",
+    "students": [...]
+  }
+]
+```
+
+#### 2. Xem chi tiết lớp
+```
+GET /api/classes/{id}
+```
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "CNTT",
+  "description": "Công nghệ thông tin",
+  "students": [
+    {
+      "id": 1,
+      "fullName": "Nguyễn Văn A",
+      "email": "nguyenvana@example.com",
+      "dateOfBirth": "2000-05-15T00:00:00",
+      "classId": 1
+    }
+  ]
+}
+```
+
+#### 3. Tạo lớp mới
+```
+POST /api/classes
+Content-Type: application/json
+```
+**Request Body:**
+```json
+{
+  "name": "Ngoại ngữ",
+  "description": "Tiếng Anh"
+}
+```
+
+### 👨‍🎓 Quản lý Sinh viên (Students)
+
+#### 1. Lấy danh sách sinh viên
+```
+GET /api/students
+```
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "fullName": "Nguyễn Văn A",
+    "email": "nguyenvana@example.com",
+    "dateOfBirth": "2000-05-15T00:00:00",
+    "classId": 1,
+    "className": "CNTT"
+  }
+]
+```
+
+#### 2. Xem chi tiết sinh viên
+```
+GET /api/students/{id}
+```
+
+#### 3. Thêm sinh viên mới
+```
+POST /api/students
+Content-Type: application/json
+```
+**Request Body:**
+```json
+{
+  "fullName": "Phạm Văn D",
+  "email": "phamvand@example.com",
+  "dateOfBirth": "2002-03-10",
+  "classId": 1
+}
+```
+
+#### 4. Cập nhật sinh viên
+```
+PUT /api/students/{id}
+Content-Type: application/json
+```
+**Request Body:**
+```json
+{
+  "fullName": "Nguyễn Văn A - Updated",
+  "email": "nguyenvana.updated@example.com",
+  "dateOfBirth": "2000-05-15",
+  "classId": 2
+}
+```
+
+#### 5. Xóa sinh viên
+```
+DELETE /api/students/{id}
+```
+
+## Chạy ứng dụng
+
+### 1. Cài đặt dependencies
+```bash
+dotnet restore
+```
+
+### 2. Chạy ứng dụng
+```bash
+dotnet run
+```
+
+### 3. Truy cập Swagger UI
+```
+https://localhost:<port>/swagger
+```
+
+## Dữ liệu mẫu (Seed Data)
+
+Khi khởi động, hệ thống tự động tạo dữ liệu mẫu:
+
+**Classes:**
+- Id: 1, Name: "CNTT", Description: "Công nghệ thông tin"
+- Id: 2, Name: "Kinh tế", Description: "Quản trị kinh doanh"
+- Id: 3, Name: "Ngoại ngữ", Description: "Tiếng Anh"
+
+**Students:**
+- Id: 1, FullName: "Nguyễn Văn A", ClassId: 1
+- Id: 2, FullName: "Trần Thị B", ClassId: 1
+- Id: 3, FullName: "Lê Văn C", ClassId: 2
+
+## Kiểm thử với Postman
+
+1. Tạo Postman Collection mới
+2. Import các endpoints từ Swagger
+3. Test đầy đủ CRUD operations
+4. Xuất file .json Postman Collection và screenshot kết quả
+
+## Các tính năng đã thực hiện
+
+✅ Layered Architecture / Clean Architecture  
+✅ RESTful API design  
+✅ Entity Framework Core In-Memory Database  
+✅ Repository Pattern  
+✅ Service Layer  
+✅ DTOs (Data Transfer Objects)  
+✅ Dependency Injection  
+✅ Circular Reference handling  
+✅ Error handling  
+✅ Swagger documentation  
+✅ Seed data  
+
+## Công nghệ sử dụng
+
+- **Framework:** ASP.NET Core 8.0
+- **Language:** C# 12.0
+- **ORM:** Entity Framework Core (In-Memory)
+- **Architecture:** Layered Architecture
+- **API Documentation:** Swagger/OpenAPI
+
+---
+**Lưu ý:** Đây là In-Memory Database, dữ liệu sẽ mất khi restart ứng dụng.

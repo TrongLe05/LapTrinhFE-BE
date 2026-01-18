@@ -1,0 +1,44 @@
+﻿using Microsoft.EntityFrameworkCore;
+using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+using TH17012026.Infrastructure.Data;
+
+namespace TH17012026.Infrastructure.Repositories
+{
+    public class StudentRepository : IStudentRepository
+    {
+        private readonly AppDbContext _context;
+
+        public StudentRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public List<Student> GetAll() => _context.Students
+            .Include(s => s.Class)
+            .ToList();
+
+        public Student GetById(int id) =>
+            _context.Students
+                .Include(s => s.Class)
+                .FirstOrDefault(s => s.Id == id);
+
+        public void Add(Student student)
+        {
+            _context.Students.Add(student);
+            _context.SaveChanges();
+        }
+
+        public void Update(Student student)
+        {
+            _context.Students.Update(student);
+            _context.SaveChanges();
+        }
+
+        public void Delete(Student student)
+        {
+            _context.Students.Remove(student);
+            _context.SaveChanges();
+        }
+    }
+}

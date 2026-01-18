@@ -1,0 +1,52 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using TH17012026.Application.DTOs;
+using TH17012026.Application.Interfaces;
+
+namespace TH17012026.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ClassesController : ControllerBase
+    {
+        private readonly IClassService _classService;
+
+        public ClassesController(IClassService classService)
+        {
+            _classService = classService;
+        }
+
+        /// <summary>
+        /// Lấy danh sách lớp
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ClassDto>>> GetAllClasses()
+        {
+            var classes = await _classService.GetAllClassesAsync();
+            return Ok(classes);
+        }
+
+        /// <summary>
+        /// Xem chi tiết lớp
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ClassDto>> GetClassById(int id)
+        {
+            var classDto = await _classService.GetClassByIdAsync(id);
+            if (classDto == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy lớp với Id = {id}" });
+            }
+            return Ok(classDto);
+        }
+
+        /// <summary>
+        /// Tạo lớp mới
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<ClassDto>> CreateClass([FromBody] CreateClassDto createDto)
+        {
+            var classDto = await _classService.CreateClassAsync(createDto);
+            return CreatedAtAction(nameof(GetClassById), new { id = classDto.Id }, classDto);
+        }
+    }
+}

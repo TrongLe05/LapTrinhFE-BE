@@ -1,0 +1,22 @@
+﻿using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+using TH17012026.Infrastructure.Repositories;
+
+namespace TH17012026.Application.Services
+{
+    public class ClassService : IClassService
+    {
+        private readonly ClassRepository _repo;
+
+        public ClassService(ClassRepository repo)
+        {
+            _repo = repo;
+        }
+
+        public List<Classes> GetAll() => _repo.GetAll();
+
+        public Classes GetById(int id) => _repo.GetById(id);
+
+        public void Create(Classes cls) => _repo.Add(cls);
+    }
+}

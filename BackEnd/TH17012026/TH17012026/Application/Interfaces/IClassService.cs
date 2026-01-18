@@ -1,0 +1,11 @@
+using TH17012026.Domain.Entities;
+
+namespace TH17012026.Application.Interfaces
+{
+    public interface IClassService
+    {
+        Task<IEnumerable<Classes>> GetAllClassesAsync();
+        Task<Classes?> GetClassByIdAsync(int id);
+        Task<Classes> CreateClassAsync(Classes classes);
+    }
+}

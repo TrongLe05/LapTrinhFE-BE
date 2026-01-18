@@ -1,0 +1,11 @@
+﻿using TH17012026.Domain.Entities;
+
+namespace TH17012026.Application.Interfaces
+{
+    public interface IClassService
+    {
+        List<Classes> GetAll();
+        Classes GetById(int id);
+        void Create(Classes cls);
+    }
+}

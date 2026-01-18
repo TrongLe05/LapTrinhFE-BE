@@ -1,0 +1,26 @@
+﻿using TH17012026.Infrastructure.Data;
+
+namespace TH17012026.Infrastructure.Repositories
+{
+    public class ClassRepository
+    {
+        private readonly AppDbContext _context;
+
+        public ClassRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public List<Class> GetAll() => _context.Classes.ToList();
+
+        public Class GetById(int id) =>
+            _context.Classes.FirstOrDefault(c => c.Id == id);
+
+        public void Add(Class cls)
+        {
+            _context.Classes.Add(cls);
+            _context.SaveChanges();
+        }
+    }
+
+}

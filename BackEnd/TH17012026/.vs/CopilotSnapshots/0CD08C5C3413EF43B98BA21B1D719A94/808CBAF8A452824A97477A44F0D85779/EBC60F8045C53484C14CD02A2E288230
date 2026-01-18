@@ -1,0 +1,101 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using TH17012026.Application.Interfaces;
+using TH17012026.Application.Services;
+using TH17012026.Domain.Entities;
+using TH17012026.Infrastructure.Data;
+using TH17012026.Infrastructure.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Xử lý circular reference
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // Bỏ qua null values
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure In-memory Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase("TH17012026Db"));
+
+// Register Repositories
+builder.Services.AddScoped<StudentRepository>();
+builder.Services.AddScoped<ClassRepository>();
+
+// Register Services
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IClassService, ClassService>();
+
+var app = builder.Build();
+
+// Seed data for In-memory database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    // Seed Classes
+    if (!context.Classes.Any())
+    {
+        context.Classes.AddRange(
+            new Classes { Id = 1, Name = "CNTT", Description = "Công nghệ thông tin" },
+            new Classes { Id = 2, Name = "Kinh tế", Description = "Quản trị kinh doanh" },
+            new Classes { Id = 3, Name = "Ngoại ngữ", Description = "Tiếng Anh" }
+        );
+        context.SaveChanges();
+    }
+
+    // Seed Students
+    if (!context.Students.Any())
+    {
+        context.Students.AddRange(
+            new Student 
+            { 
+                Id = 1, 
+                FullName = "Nguyễn Văn A", 
+                Email = "nguyenvana@example.com", 
+                DateOfBirth = new DateTime(2000, 5, 15),
+                ClassId = 1 
+            },
+            new Student 
+            { 
+                Id = 2, 
+                FullName = "Trần Thị B", 
+                Email = "tranthib@example.com", 
+                DateOfBirth = new DateTime(2001, 8, 20),
+                ClassId = 1 
+            },
+            new Student 
+            { 
+                Id = 3, 
+                FullName = "Lê Văn C", 
+                Email = "levanc@example.com", 
+                DateOfBirth = new DateTime(1999, 12, 10),
+                ClassId = 2 
+            }
+        );
+        context.SaveChanges();
+    }
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+

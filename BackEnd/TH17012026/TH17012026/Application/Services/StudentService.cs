@@ -1,0 +1,62 @@
+using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+
+namespace TH17012026.Application.Services
+{
+    public class StudentService : IStudentService
+    {
+        private readonly IStudentRepository _studentRepository;
+        private readonly IClassRepository _classRepository;
+
+        public StudentService(IStudentRepository studentRepository, IClassRepository classRepository)
+        {
+            _studentRepository = studentRepository;
+            _classRepository = classRepository;
+        }
+
+        public async Task<IEnumerable<Student>> GetAllStudentsAsync()
+        {
+            return await _studentRepository.GetAllAsync();
+        }
+
+        public async Task<Student?> GetStudentByIdAsync(int id)
+        {
+            return await _studentRepository.GetByIdAsync(id);
+        }
+
+        public async Task<Student> CreateStudentAsync(Student student)
+        {
+            // Validate class exists
+            if (!await _classRepository.ExistsAsync(student.ClassId))
+            {
+                throw new ArgumentException($"Class with Id {student.ClassId} does not exist.");
+            }
+
+            return await _studentRepository.AddAsync(student);
+        }
+
+        public async Task<Student?> UpdateStudentAsync(int id, Student student)
+        {
+            var existingStudent = await _studentRepository.GetByIdAsync(id);
+            if (existingStudent == null) return null;
+
+            // Validate class exists
+            if (!await _classRepository.ExistsAsync(student.ClassId))
+            {
+                throw new ArgumentException($"Class with Id {student.ClassId} does not exist.");
+            }
+
+            existingStudent.FullName = student.FullName;
+            existingStudent.Email = student.Email;
+            existingStudent.DateOfBirth = student.DateOfBirth;
+            existingStudent.ClassId = student.ClassId;
+
+            return await _studentRepository.UpdateAsync(existingStudent);
+        }
+
+        public async Task<bool> DeleteStudentAsync(int id)
+        {
+            return await _studentRepository.DeleteAsync(id);
+        }
+    }
+}

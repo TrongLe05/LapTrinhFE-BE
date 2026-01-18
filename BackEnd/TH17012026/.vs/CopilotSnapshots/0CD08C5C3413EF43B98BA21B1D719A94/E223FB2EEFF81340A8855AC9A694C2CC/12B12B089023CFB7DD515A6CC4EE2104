@@ -1,0 +1,6 @@
+﻿namespace TH17012026.Application.Services
+{
+    public class ClassService
+    {
+    }
+}

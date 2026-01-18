@@ -1,0 +1,36 @@
+﻿using Microsoft.EntityFrameworkCore;
+using TH17012026.Application.Interfaces;
+using TH17012026.Application.Services;
+using TH17012026.Infrastructure.Data;
+using TH17012026.Infrastructure.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped<StudentRepository>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

@@ -1,0 +1,94 @@
+using Microsoft.AspNetCore.Mvc;
+using TH17012026.Application.Interfaces;
+using TH17012026.Domain.Entities;
+
+namespace TH17012026.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class StudentsController : ControllerBase
+    {
+        private readonly IStudentService _studentService;
+
+        public StudentsController(IStudentService studentService)
+        {
+            _studentService = studentService;
+        }
+
+        /// <summary>
+        /// Lấy danh sách sinh viên
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
+        {
+            var students = await _studentService.GetAllStudentsAsync();
+            return Ok(students);
+        }
+
+        /// <summary>
+        /// Xem chi tiết sinh viên
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Student>> GetStudentById(int id)
+        {
+            var student = await _studentService.GetStudentByIdAsync(id);
+            if (student == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy sinh viên với Id = {id}" });
+            }
+            return Ok(student);
+        }
+
+        /// <summary>
+        /// Thêm sinh viên
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<Student>> CreateStudent([FromBody] Student student)
+        {
+            try
+            {
+                var createdStudent = await _studentService.CreateStudentAsync(student);
+                return CreatedAtAction(nameof(GetStudentById), new { id = createdStudent.Id }, createdStudent);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật sinh viên
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Student>> UpdateStudent(int id, [FromBody] Student student)
+        {
+            try
+            {
+                var updatedStudent = await _studentService.UpdateStudentAsync(id, student);
+                if (updatedStudent == null)
+                {
+                    return NotFound(new { message = $"Không tìm thấy sinh viên với Id = {id}" });
+                }
+                return Ok(updatedStudent);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Xóa sinh viên
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteStudent(int id)
+        {
+            var result = await _studentService.DeleteStudentAsync(id);
+            if (!result)
+            {
+                return NotFound(new { message = $"Không tìm thấy sinh viên với Id = {id}" });
+            }
+            return Ok(new { message = "Xóa sinh viên thành công" });
+        }
+    }
+}
